@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ma liste">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#2f7de1">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Ma liste</title>
+<style>
+:root{--bg:#f2f2f7;--card:#ffffff;--text:#1c1c1e;--muted:#8e8e93;--accent:#2f7de1;--danger:#e5484d;--line:#e5e5ea}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#000000;--card:#1c1c1e;--text:#f2f2f7;--muted:#8e8e93;--accent:#4f9cf7;--line:#2c2c2e}
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:1;background:var(--card);border-bottom:1px solid var(--line);padding:14px 16px 0}
+h1{font-size:20px;margin:0 0 10px}
+.tabs{display:flex}
+.tabs button{flex:1;background:none;border:0;padding:12px 4px;font-size:16px;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer}
+.tabs button.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+main{padding:16px;max-width:600px;margin:0 auto}
+.section[hidden]{display:none}
+form.row{display:flex;gap:8px;margin-bottom:12px}
+input[type=text],input[type=date]{flex:1;min-width:0;font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+.add{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:0 18px;font-size:17px;font-weight:600;cursor:pointer}
+.day-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.day-bar .label{flex:1;font-size:16px;font-weight:600;text-transform:capitalize}
+.link{background:none;border:0;color:var(--accent);font-size:15px;cursor:pointer;padding:6px}
+ul{list-style:none;margin:0;padding:0;background:var(--card);border-radius:12px;overflow:hidden}
+li{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);font-size:17px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+li:last-child{border-bottom:0}
+li:active{background:var(--line)}
+li .text{flex:1;word-break:break-word}
+li.done .text{text-decoration:line-through;color:var(--muted)}
+.check{width:24px;height:24px;border-radius:50%;border:2px solid var(--accent);flex:none}
+li.done .check{background:var(--accent)}
+.del{background:none;border:0;color:var(--danger);font-size:22px;line-height:1;padding:4px;cursor:pointer}
+.empty{color:var(--muted);text-align:center;padding:24px 16px;font-size:15px;cursor:default}
+.empty:active{background:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Ma liste</h1>
+  <nav class="tabs">
+    <button id="tab-tasks" class="active" type="button">À faire</button>
+    <button id="tab-courses" type="button">Courses</button>
+  </nav>
+</header>
+
+<main>
+  <section id="section-tasks" class="section">
+    <div class="day-bar">
+      <span class="label" id="day-label"></span>
+      <input type="date" id="day-input" aria-label="Jour">
+      <button class="link" id="tomorrow-btn" type="button">Demain</button>
+    </div>
+    <form class="row" id="task-form">
+      <input type="text" id="task-input" placeholder="Ajouter une tâche" autocomplete="off" required>
+      <button class="add" type="submit">Ajouter</button>
+    </form>
+    <ul id="task-list"></ul>
+  </section>
+
+  <section id="section-courses" class="section" hidden>
+    <form class="row" id="course-form">
+      <input type="text" id="course-input" placeholder="Ajouter à la liste de courses" autocomplete="off" required>
+      <button class="add" type="submit">Ajouter</button>
+    </form>
+    <ul id="course-list"></ul>
+  </section>
+</main>
+
+<script>
+const KEY = 'ma-liste-v1';
+
+let data = {};
+try { data = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { data = {}; }
+data.tasks = data.tasks || [];
+data.courses = data.courses || [];
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* stockage indisponible */ }
+}
+
+function h(tag, props = {}, ...kids) {
+  const el = document.createElement(tag);
+  Object.assign(el, props);
+  kids.forEach(k => el.append(k));
+  return el;
+}
+
+// Date au format AAAA-MM-JJ en heure locale
+function toIso(d) {
+  const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return z.toISOString().slice(0, 10);
+}
+function tomorrowIso() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return toIso(d);
+}
+function dayLabel(iso) {
+  const label = new Date(iso + 'T00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  return iso === tomorrowIso() ? 'Demain · ' + label : label;
+}
+
+let currentDay = tomorrowIso();
+
+// ---------- Onglets ----------
+function showTab(name) {
+  const isTasks = name === 'tasks';
+  document.getElementById('tab-tasks').classList.toggle('active', isTasks);
+  document.getElementById('tab-courses').classList.toggle('active', !isTasks);
+  document.getElementById('section-tasks').hidden = !isTasks;
+  document.getElementById('section-courses').hidden = isTasks;
+}
+document.getElementById('tab-tasks').onclick = () => showTab('tasks');
+document.getElementById('tab-courses').onclick = () => showTab('courses');
+
+// ---------- À faire ----------
+const dayInput = document.getElementById('day-input');
+const taskList = document.getElementById('task-list');
+
+function renderTasks() {
+  document.getElementById('day-label').textContent = dayLabel(currentDay);
+  dayInput.value = currentDay;
+
+  const items = data.tasks.filter(t => t.date === currentDay);
+  if (items.length === 0) {
+    taskList.replaceChildren(h('li', { className: 'empty' }, 'Rien de prévu ce jour-là'));
+    return;
+  }
+  taskList.replaceChildren(...items.map(t =>
+    h('li', {
+      className: t.done ? 'done' : '',
+      onclick: () => { t.done = !t.done; save(); renderTasks(); }
+    },
+      h('div', { className: 'check' }),
+      h('span', { className: 'text' }, t.text),
+      h('button', {
+        className: 'del', type: 'button', title: 'Supprimer',
+        onclick: e => {
+          e.stopPropagation();
+          data.tasks = data.tasks.filter(x => x !== t);
+          save(); renderTasks();
+        }
+      }, '×')
+    )
+  ));
+}
+
+document.getElementById('task-form').onsubmit = e => {
+  e.preventDefault();
+  const input = document.getElementById('task-input');
+  const text = input.value.trim();
+  if (!text) return;
+  data.tasks.push({ id: Date.now(), text, date: currentDay, done: false });
+  input.value = '';
+  save(); renderTasks();
+};
+
+dayInput.onchange = () => {
+  if (dayInput.value) { currentDay = dayInput.value; renderTasks(); }
+};
+document.getElementById('tomorrow-btn').onclick = () => {
+  currentDay = tomorrowIso();
+  renderTasks();
+};
+
+// ---------- Courses ----------
+const courseList = document.getElementById('course-list');
+
+function renderCourses() {
+  if (data.courses.length === 0) {
+    courseList.replaceChildren(h('li', { className: 'empty' }, 'Liste vide'));
+    return;
+  }
+  courseList.replaceChildren(...data.courses.map(c =>
+    h('li', {
+      title: 'Toucher pour retirer',
+      onclick: () => {
+        data.courses = data.courses.filter(x => x !== c);
+        save(); renderCourses();
+      }
+    }, h('span', { className: 'text' }, c.text))
+  ));
+}
+
+document.getElementById('course-form').onsubmit = e => {
+  e.preventDefault();
+  const input = document.getElementById('course-input');
+  const text = input.value.trim();
+  if (!text) return;
+  data.courses.push({ id: Date.now(), text });
+  input.value = '';
+  save(); renderCourses();
+};
+
+// ---------- Démarrage ----------
+renderTasks();
+renderCourses();
+
+// Hors ligne : enregistre le service worker si le site est servi en HTTPS
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
