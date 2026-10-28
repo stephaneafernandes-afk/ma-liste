@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Ma liste">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -11,53 +11,73 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Ma liste</title>
 <style>
-:root{--bg:#f2f2f7;--card:#ffffff;--text:#1c1c1e;--muted:#8e8e93;--accent:#2f7de1;--danger:#e5484d;--line:#e5e5ea}
+:root{--bg:#f2f2f7;--card:#ffffff;--text:#000000;--muted:#5c5c63;--accent:#0a63d6;--accent-text:#ffffff;--danger:#c4161c;--line:#d1d1d6}
 @media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){--bg:#000000;--card:#1c1c1e;--text:#f2f2f7;--muted:#8e8e93;--accent:#4f9cf7;--line:#2c2c2e}
+  :root:not([data-theme="light"]){--bg:#000000;--card:#1c1c1e;--text:#ffffff;--muted:#b0b0b8;--accent:#4f9cf7;--accent-text:#000000;--danger:#ff6b6b;--line:#3a3a3c}
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
-header{position:sticky;top:0;z-index:1;background:var(--card);border-bottom:1px solid var(--line);padding:14px 16px 0}
-h1{font-size:20px;margin:0 0 10px}
-.tabs{display:flex}
-.tabs button{flex:1;background:none;border:0;padding:12px 4px;font-size:16px;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer}
-.tabs button.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
-main{padding:16px;max-width:600px;margin:0 auto}
+html,body{margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:18px;line-height:1.35;background:var(--bg);color:var(--text);min-height:100vh;-webkit-text-size-adjust:100%}
+
+/* En-tête */
+header{position:sticky;top:0;z-index:1;background:var(--card);border-bottom:1px solid var(--line);padding:16px 20px;padding-top:calc(16px + env(safe-area-inset-top))}
+h1{font-size:26px;margin:0;font-weight:700}
+
+/* Contenu */
+main{padding:20px;padding-bottom:calc(120px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
 .section[hidden]{display:none}
-form.row{display:flex;gap:8px;margin-bottom:12px}
-input[type=text],input[type=date]{flex:1;min-width:0;font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
-.add{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:0 18px;font-size:17px;font-weight:600;cursor:pointer}
-.day-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.day-bar .label{flex:1;font-size:16px;font-weight:600;text-transform:capitalize}
-.link{background:none;border:0;color:var(--accent);font-size:15px;cursor:pointer;padding:6px}
-ul{list-style:none;margin:0;padding:0;background:var(--card);border-radius:12px;overflow:hidden}
-li{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);font-size:17px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+
+/* Formulaire d'ajout */
+form.row{display:flex;gap:10px;margin-bottom:20px}
+input[type=text],input[type=date]{flex:1;min-width:0;height:56px;font-size:18px;padding:0 16px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--text)}
+input[type=text]:focus,input[type=date]:focus{outline:none;border-color:var(--accent)}
+.add{height:56px;min-width:96px;background:var(--accent);color:var(--accent-text);border:0;border-radius:14px;font-size:18px;font-weight:700;cursor:pointer}
+
+/* Navigation par jour */
+.day-nav{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.day-nav .label{flex:1;text-align:center;font-size:20px;font-weight:700;text-transform:capitalize}
+.round{width:48px;height:48px;border:2px solid var(--line);border-radius:50%;background:var(--card);color:var(--accent);font-size:24px;line-height:1;cursor:pointer;flex:none}
+.day-tools{display:flex;justify-content:center;gap:12px;margin-bottom:20px}
+.pill{height:44px;padding:0 18px;border:2px solid var(--line);border-radius:22px;background:var(--card);color:var(--accent);font-size:16px;font-weight:600;cursor:pointer}
+.day-tools input[type=date]{flex:0 0 auto;width:auto;height:44px;font-size:16px;border-radius:22px;padding:0 14px}
+
+/* Listes */
+ul{list-style:none;margin:0;padding:0;background:var(--card);border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+li{display:flex;align-items:center;gap:14px;min-height:60px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:19px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
 li:last-child{border-bottom:0}
 li:active{background:var(--line)}
 li .text{flex:1;word-break:break-word}
 li.done .text{text-decoration:line-through;color:var(--muted)}
-.check{width:24px;height:24px;border-radius:50%;border:2px solid var(--accent);flex:none}
+.check{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--accent);flex:none;display:flex;align-items:center;justify-content:center;color:var(--accent-text);font-size:18px;font-weight:700}
 li.done .check{background:var(--accent)}
-.del{background:none;border:0;color:var(--danger);font-size:22px;line-height:1;padding:4px;cursor:pointer}
-.empty{color:var(--muted);text-align:center;padding:24px 16px;font-size:15px;cursor:default}
+li.done .check::before{content:"✓"}
+.del{width:44px;height:44px;margin-right:-10px;background:none;border:0;color:var(--danger);font-size:26px;line-height:1;cursor:pointer;flex:none}
+.empty{display:block;color:var(--muted);text-align:center;padding:28px 16px;font-size:17px;cursor:default}
 .empty:active{background:none}
+.hint{font-size:16px;color:var(--muted);text-align:center;margin:0 0 16px}
+
+/* Onglets en bas de l'écran, à portée du pouce */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:2;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs button{flex:1;height:70px;background:none;border:0;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.tabs button .icon{font-size:26px;line-height:1}
+.tabs button.active{color:var(--accent)}
 </style>
 </head>
 <body>
 <header>
   <h1>Ma liste</h1>
-  <nav class="tabs">
-    <button id="tab-tasks" class="active" type="button">À faire</button>
-    <button id="tab-courses" type="button">Courses</button>
-  </nav>
 </header>
 
 <main>
   <section id="section-tasks" class="section">
-    <div class="day-bar">
+    <div class="day-nav">
+      <button class="round" id="prev-btn" type="button" aria-label="Jour précédent">‹</button>
       <span class="label" id="day-label"></span>
-      <input type="date" id="day-input" aria-label="Jour">
-      <button class="link" id="tomorrow-btn" type="button">Demain</button>
+      <button class="round" id="next-btn" type="button" aria-label="Jour suivant">›</button>
+    </div>
+    <div class="day-tools">
+      <button class="pill" id="tomorrow-btn" type="button">Demain</button>
+      <input type="date" id="day-input" aria-label="Choisir un jour">
     </div>
     <form class="row" id="task-form">
       <input type="text" id="task-input" placeholder="Ajouter une tâche" autocomplete="off" required>
@@ -68,12 +88,18 @@ li.done .check{background:var(--accent)}
 
   <section id="section-courses" class="section" hidden>
     <form class="row" id="course-form">
-      <input type="text" id="course-input" placeholder="Ajouter à la liste de courses" autocomplete="off" required>
+      <input type="text" id="course-input" placeholder="Ajouter un article" autocomplete="off" required>
       <button class="add" type="submit">Ajouter</button>
     </form>
+    <p class="hint">Touche un article quand il est acheté pour le retirer.</p>
     <ul id="course-list"></ul>
   </section>
 </main>
+
+<nav class="tabs">
+  <button id="tab-tasks" class="active" type="button"><span class="icon">📝</span>À faire</button>
+  <button id="tab-courses" type="button"><span class="icon">🛒</span>Courses</button>
+</nav>
 
 <script>
 const KEY = 'ma-liste-v1';
@@ -99,14 +125,17 @@ function toIso(d) {
   const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
   return z.toISOString().slice(0, 10);
 }
-function tomorrowIso() {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
+function addDays(iso, n) {
+  const d = new Date(iso + 'T00:00');
+  d.setDate(d.getDate() + n);
   return toIso(d);
+}
+function tomorrowIso() {
+  return addDays(toIso(new Date()), 1);
 }
 function dayLabel(iso) {
   const label = new Date(iso + 'T00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-  return iso === tomorrowIso() ? 'Demain · ' + label : label;
+  return iso === tomorrowIso() ? 'Demain, ' + label : label;
 }
 
 let currentDay = tomorrowIso();
@@ -130,7 +159,11 @@ function renderTasks() {
   document.getElementById('day-label').textContent = dayLabel(currentDay);
   dayInput.value = currentDay;
 
-  const items = data.tasks.filter(t => t.date === currentDay);
+  // Tâches à faire en premier, tâches faites en dessous
+  const items = data.tasks
+    .filter(t => t.date === currentDay)
+    .sort((a, b) => Number(a.done) - Number(b.done));
+
   if (items.length === 0) {
     taskList.replaceChildren(h('li', { className: 'empty' }, 'Rien de prévu ce jour-là'));
     return;
@@ -143,7 +176,7 @@ function renderTasks() {
       h('div', { className: 'check' }),
       h('span', { className: 'text' }, t.text),
       h('button', {
-        className: 'del', type: 'button', title: 'Supprimer',
+        className: 'del', type: 'button', title: 'Supprimer', 'aria-label': 'Supprimer',
         onclick: e => {
           e.stopPropagation();
           data.tasks = data.tasks.filter(x => x !== t);
@@ -164,6 +197,8 @@ document.getElementById('task-form').onsubmit = e => {
   save(); renderTasks();
 };
 
+document.getElementById('prev-btn').onclick = () => { currentDay = addDays(currentDay, -1); renderTasks(); };
+document.getElementById('next-btn').onclick = () => { currentDay = addDays(currentDay, 1); renderTasks(); };
 dayInput.onchange = () => {
   if (dayInput.value) { currentDay = dayInput.value; renderTasks(); }
 };
@@ -177,7 +212,7 @@ const courseList = document.getElementById('course-list');
 
 function renderCourses() {
   if (data.courses.length === 0) {
-    courseList.replaceChildren(h('li', { className: 'empty' }, 'Liste vide'));
+    courseList.replaceChildren(h('li', { className: 'empty' }, 'Liste vide pour le moment'));
     return;
   }
   courseList.replaceChildren(...data.courses.map(c =>
