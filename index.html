@@ -24,7 +24,7 @@ header{position:sticky;top:0;z-index:1;background:var(--card);border-bottom:1px 
 h1{font-size:26px;margin:0;font-weight:700}
 
 /* Contenu */
-main{padding:20px;padding-bottom:calc(120px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
+main{padding:20px;padding-bottom:calc(32px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
 .section[hidden]{display:none}
 
 /* Formulaire d'ajout */
@@ -56,16 +56,20 @@ li.done .check::before{content:"✓"}
 .empty:active{background:none}
 .hint{font-size:16px;color:var(--muted);text-align:center;margin:0 0 16px}
 
-/* Onglets en bas de l'écran, à portée du pouce */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:2;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-.tabs button{flex:1;height:70px;background:none;border:0;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
-.tabs button .icon{font-size:26px;line-height:1}
-.tabs button.active{color:var(--accent)}
+/* Onglets en haut, sous le titre */
+.tabs{display:flex;gap:10px;margin-top:14px}
+.tabs button{flex:1;height:52px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--muted);font-size:17px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.tabs button .icon{font-size:20px;line-height:1}
+.tabs button.active{color:var(--accent-text);background:var(--accent);border-color:var(--accent)}
 </style>
 </head>
 <body>
 <header>
   <h1>Ma liste</h1>
+  <nav class="tabs">
+    <button id="tab-tasks" class="active" type="button"><span class="icon">📝</span>À faire</button>
+    <button id="tab-courses" type="button"><span class="icon">🛒</span>Courses</button>
+  </nav>
 </header>
 
 <main>
@@ -95,11 +99,6 @@ li.done .check::before{content:"✓"}
     <ul id="course-list"></ul>
   </section>
 </main>
-
-<nav class="tabs">
-  <button id="tab-tasks" class="active" type="button"><span class="icon">📝</span>À faire</button>
-  <button id="tab-courses" type="button"><span class="icon">🛒</span>Courses</button>
-</nav>
 
 <script>
 const KEY = 'ma-liste-v1';
